@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalentMatch - Tu próximo reto profesional</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-slate-900 min-h-screen flex flex-col font-sans">
+
+    <header class="w-full py-6 px-8 flex justify-between items-center absolute top-0 left-0 z-20">
+        <div class="text-2xl font-extrabold tracking-tight text-white cursor-pointer" onclick="irAInicio()">
+            Talent<span class="text-indigo-400">Match</span>
+        </div>
+        <button onclick="irALogin()" class="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition duration-300 shadow-md">
+            Iniciar Sesión
+        </button>
+    </header>
+
+    <main class="bg-hero min-h-screen flex flex-col items-center justify-center text-center px-6 relative">
+        <div class="max-w-4xl mx-auto z-10">
+            <h1 class="text-5xl md:text-7xl font-extrabold mb-6 leading-tight tracking-tight text-white">
+                Tu próximo reto profesional <br>
+                <span class="text-indigo-400 font-black">te está esperando.</span>
+            </h1>
+            <p class="text-lg md:text-xl text-slate-200 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
+                Conectamos el mejor talento con las empresas líderes en el mercado. Rápido, simple y sin intermediarios innecesarios.
+            </p>
+            <button onclick="irAEmpleos()" class="bg-indigo-600 text-white px-10 py-4 rounded-2xl font-bold text-lg hover:bg-indigo-500 hover:scale-105 transition duration-300 shadow-xl shadow-indigo-600/30">
+                Ver empleos
+            </button>
+        </div>
+    </main>
+
+    <script src="inicio.js"></script>
+</body>
+</html>

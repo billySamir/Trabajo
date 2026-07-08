@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalentMatch - Datos Personales</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen font-sans">
+
+    <header class="w-full py-6 px-8 bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm flex items-center gap-4">
+        <button onclick="volverAEmpleos()" class="text-indigo-600 font-semibold hover:text-indigo-800 transition flex items-center gap-2">
+            <span>←</span> Volver a empleos
+        </button>
+    </header>
+
+    <main class="max-w-3xl mx-auto p-6 md:p-10">
+        <h1 class="text-3xl font-extrabold mb-8 text-slate-800 tracking-tight">Datos Personales</h1>
+        
+        <div class="bg-white p-8 rounded-[2rem] shadow-xl border border-slate-100 flex flex-col gap-8">
+            
+            <div class="flex items-center gap-6 pb-8 border-b border-slate-100">
+                <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-2xl font-black shadow-inner">
+                    JD
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 text-lg mb-1">Foto de perfil</h3>
+                    <button class="text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition bg-indigo-50 px-4 py-2 rounded-lg">
+                        Cambiar foto
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-6">
+                
+                <div class="flex justify-between items-center bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                    <div class="flex-1 mr-4">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Nombre Completo</label>
+                        <input type="text" id="inputName" value="Juan Doe" disabled class="w-full bg-transparent text-slate-800 font-semibold outline-none focus:border-b-2 focus:border-indigo-500 pb-1 disabled:opacity-90">
+                    </div>
+                    <button onclick="toggleEdicion('inputName', this)" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition px-3 py-1">Editar</button>
+                </div>
+
+                <div class="flex justify-between items-center bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                    <div class="flex-1 mr-4">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Correo Electrónico</label>
+                        <input type="email" id="inputEmail" value="juan.doe@email.com" disabled class="w-full bg-transparent text-slate-800 font-semibold outline-none focus:border-b-2 focus:border-indigo-500 pb-1 disabled:opacity-90">
+                    </div>
+                    <button onclick="toggleEdicion('inputEmail', this)" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition px-3 py-1">Editar</button>
+                </div>
+
+                <div class="flex justify-between items-center bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                    <div class="flex-1 mr-4">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Número de Celular</label>
+                        <input type="tel" id="inputPhone" value="+51 999 999 999" disabled class="w-full bg-transparent text-slate-800 font-semibold outline-none focus:border-b-2 focus:border-indigo-500 pb-1 disabled:opacity-90">
+                    </div>
+                    <button onclick="toggleEdicion('inputPhone', this)" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition px-3 py-1">Editar</button>
+                </div>
+
+                <div class="flex justify-between items-center bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                    <div class="flex-1 mr-4">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Contraseña</label>
+                        <input type="password" id="inputPassword" value="********" disabled class="w-full bg-transparent text-slate-800 font-semibold outline-none focus:border-b-2 focus:border-indigo-500 pb-1 disabled:opacity-90">
+                    </div>
+                    <button onclick="toggleEdicion('inputPassword', this)" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition px-3 py-1">Editar</button>
+                </div>
+
+            </div>
+            
+        </div>
+    </main>
+
+    <script src="perfil.js"></script>
+</body>
+</html>
