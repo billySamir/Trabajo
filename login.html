@@ -6,6 +6,9 @@
     <title>TalentMatch - Iniciar Sesión</title>
     <!-- Tailwind CSS desde CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <!-- Hoja de estilos compartida -->
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -29,13 +32,15 @@
             
             <!-- Formulario Tradicional -->
             <div class="flex flex-col gap-4 mb-6">
-                <input type="email" placeholder="Correo electrónico" class="w-full p-4 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm text-slate-700 bg-slate-50">
-                <input type="password" placeholder="Contraseña" class="w-full p-4 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm text-slate-700 bg-slate-50">
+                <input id="emailInput" type="email" placeholder="Correo electrónico" class="w-full p-4 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm text-slate-700 bg-slate-50">
+                <input id="passwordInput" type="password" placeholder="Contraseña" class="w-full p-4 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm text-slate-700 bg-slate-50">
             </div>
             
-            <button onclick="iniciarSesion()" class="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold mb-6 hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-600/30 transition duration-300">
+            <button onclick="iniciarSesion()" class="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold mb-4 hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-600/30 transition duration-300">
                 Iniciar Sesión
             </button>
+
+            <p id="auth-message" class="text-sm text-center text-slate-500 mb-6"></p>
             
             <!-- Separador -->
             <div class="flex items-center gap-4 mb-6">
@@ -73,6 +78,7 @@
     </main>
 
     <!-- Lógica de la página -->
+    <script src="firebase-config.js"></script>
     <script src="login.js"></script>
 </body>
 </html>
