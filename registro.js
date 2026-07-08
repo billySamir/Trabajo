@@ -1,7 +1,3 @@
-/**
- * Lógica exclusiva para la página de Iniciar Sesión (login.html)
- */
-
 let auth;
 let db;
 let googleProvider;
@@ -13,21 +9,6 @@ function mostrarMensaje(texto, tipo = "error") {
 
     mensaje.textContent = texto;
     mensaje.className = `mt-4 text-sm text-center ${tipo === "error" ? "text-red-600" : "text-green-600"}`;
-}
-
-function guardarUsuarioEnBase(user) {
-    if (!db || !user) return Promise.resolve();
-
-    const datosUsuario = {
-        uid: user.uid,
-        nombre: user.displayName || "",
-        email: user.email || "",
-        foto: user.photoURL || "",
-        proveedor: user.providerData?.[0]?.providerId || "firebase",
-        actualizadoEn: new Date().toISOString()
-    };
-
-    return db.collection("users").doc(user.uid).set(datosUsuario, { merge: true });
 }
 
 function persistirUsuario(user) {
@@ -46,42 +27,44 @@ function persistirUsuario(user) {
     localStorage.setItem("user", JSON.stringify(datosUsuario));
 }
 
-async function iniciarSesion() {
-    const emailInput = document.getElementById("emailInput");
-    const passwordInput = document.getElementById("passwordInput");
+function guardarUsuarioEnBase(user) {
+    if (!db || !user) return Promise.resolve();
 
-    if (!emailInput || !passwordInput || !auth) {
+    const datosUsuario = {
+        uid: user.uid,
+        nombre: user.displayName || "",
+        email: user.email || "",
+        foto: user.photoURL || "",
+        proveedor: user.providerData?.[0]?.providerId || "firebase",
+        actualizadoEn: new Date().toISOString()
+    };
+
+    return db.collection("users").doc(user.uid).set(datosUsuario, { merge: true });
+}
+
+async function registrarCuenta() {
+    const nombre = document.getElementById("nameInput")?.value.trim();
+    const email = document.getElementById("emailInput")?.value.trim();
+    const password = document.getElementById("passwordInput")?.value;
+
+    if (!nombre || !email || !password) {
+        mostrarMensaje("Completa todos los campos para continuar.");
+        return;
+    }
+
+    if (!auth) {
         mostrarMensaje("Firebase no está listo todavía. Revisa la configuración del proyecto.");
         return;
     }
 
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
-
-    if (!email || !password) {
-        mostrarMensaje("Ingresa tu correo y contraseña para continuar.");
-        return;
-    }
-
     try {
-        const credenciales = await auth.signInWithEmailAndPassword(email, password);
+        const credenciales = await auth.createUserWithEmailAndPassword(email, password);
+        await credenciales.user.updateProfile({ displayName: nombre });
         await guardarUsuarioEnBase(credenciales.user);
         persistirUsuario(credenciales.user);
         window.location.href = "empleos.html";
     } catch (error) {
-        if (error.code === "auth/user-not-found") {
-            try {
-                const credenciales = await auth.createUserWithEmailAndPassword(email, password);
-                await guardarUsuarioEnBase(credenciales.user);
-                persistirUsuario(credenciales.user);
-                window.location.href = "empleos.html";
-            } catch (crearError) {
-                mostrarMensaje(crearError.message || "No se pudo crear la cuenta.");
-            }
-            return;
-        }
-
-        mostrarMensaje(error.message || "No se pudo iniciar sesión.");
+        mostrarMensaje(error.message || "No se pudo crear la cuenta.");
     }
 }
 
@@ -112,12 +95,10 @@ async function iniciarSesionSocial(plataforma) {
     }
 }
 
-// Volver a la página principal (Logo)
 function irAInicio() {
     window.location.href = "index.html";
 }
 
-// Mensaje de confirmación en consola
 document.addEventListener("DOMContentLoaded", () => {
     const firebaseConfig = window.FIREBASE_CONFIG || {
         apiKey: "TU_API_KEY",
@@ -131,7 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const necesitaConfiguracion = !firebaseConfig.apiKey || firebaseConfig.apiKey.includes("TU_");
 
     if (necesitaConfiguracion) {
-        mostrarMensaje("Agrega la configuración de tu proyecto de Firebase en login.js para activar Google y Firestore.");
+        mostrarMensaje("Agrega la configuración de tu proyecto de Firebase en firebase-config.js para activar Google, GitHub y Firestore.");
         return;
     }
 
@@ -144,18 +125,9 @@ document.addEventListener("DOMContentLoaded", () => {
         googleProvider.addScope("email");
         githubProvider = new window.firebase.auth.GithubAuthProvider();
         githubProvider.addScope("user:email");
-
-        auth.onAuthStateChanged((usuario) => {
-            if (usuario) {
-                persistirUsuario(usuario);
-                if (window.location.pathname.endsWith("login.html") || window.location.pathname.endsWith("/")) {
-                    window.location.href = "empleos.html";
-                }
-            }
-        });
     } catch (error) {
         mostrarMensaje("No se pudo inicializar Firebase. Revisa la configuración web.");
     }
 
-    console.log("Módulo Login cargado correctamente.");
+    console.log("Módulo Registro cargado correctamente.");
 });
