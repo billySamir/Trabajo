@@ -104,6 +104,29 @@ async function iniciarSesionSocial(plataforma) {
         persistirUsuario(resultado.user);
         window.location.href = "empleos.html";
     } catch (error) {
+        const popupsBloqueados = [
+            'auth/popup-blocked',
+            'auth/popup-closed-by-user',
+            'auth/cancelled-popup-request',
+            'auth/operation-not-supported-in-this-environment'
+        ];
+
+        if (popupsBloqueados.includes(error.code)) {
+            try {
+                await auth.signInWithRedirect(provider);
+                return;
+            } catch (redirectError) {
+                console.error('Error con signInWithRedirect:', redirectError);
+                mostrarMensaje(redirectError.message || `No se pudo iniciar sesión con ${plataforma}.`);
+                return;
+            }
+        }
+
+        if (error.code === 'auth/unauthorized-domain') {
+            mostrarMensaje('Dominio no autorizado en Firebase. Añade tu dominio en la consola de Firebase.');
+            return;
+        }
+
         mostrarMensaje(error.message || `No se pudo iniciar sesión con ${plataforma}.`);
     }
 }
@@ -159,6 +182,21 @@ document.addEventListener("DOMContentLoaded", () => {
             googleProvider.addScope("email");
             githubProvider = new window.firebase.auth.GithubAuthProvider();
             githubProvider.addScope("user:email");
+
+            auth.getRedirectResult()
+                .then(async (result) => {
+                    if (result.user) {
+                        await guardarUsuarioEnBase(result.user);
+                        persistirUsuario(result.user);
+                        window.location.href = "empleos.html";
+                    }
+                })
+                .catch((redirectError) => {
+                    console.warn('Error al procesar redirect de Firebase:', redirectError);
+                    if (redirectError.code === 'auth/unauthorized-domain') {
+                        mostrarMensaje('Dominio no autorizado en Firebase. Añade este dominio en la consola de Firebase.');
+                    }
+                });
         }
     } catch (error) {
         if (enLoginPage) {
