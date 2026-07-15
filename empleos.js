@@ -106,6 +106,10 @@ function irAInicio() {
 function cerrarSesion() {
     // Limpiar localStorage
     localStorage.removeItem("user");
+    // Hacer logout en Firebase (si está disponible)
+    if (typeof cerrarSesionFirebase === 'function') {
+        cerrarSesionFirebase();
+    }
     // Redirigir a inicio
     window.location.href = "index.html";
 }
@@ -191,9 +195,6 @@ document.addEventListener("DOMContentLoaded", () => {
     
     renderizarEmpleos(empleos);
     console.log("Módulo Empleos cargado correctamente.");
-    
-    // Inicializar Firebase solo si no ha sido inicializado
-    inicializarFirebaseEmpleos();
 });
 
 // Función para actualizar el perfil del usuario
@@ -206,40 +207,5 @@ function actualizarPerfilUsuario(usuario) {
     }
     if (emailElemento) {
         emailElemento.textContent = usuario.email || '';
-    }
-}
-
-// Inicializar Firebase en empleos.html
-function inicializarFirebaseEmpleos() {
-    if (!window.FIREBASE_CONFIG) {
-        console.log("Configuración de Firebase no disponible");
-        return;
-    }
-    
-    // Evitar re-inicializar Firebase
-    if (window.firebase && window.firebase.apps && window.firebase.apps.length > 0) {
-        return;
-    }
-    
-    try {
-        window.firebase.initializeApp(window.FIREBASE_CONFIG);
-        const auth = window.firebase.auth();
-        
-        // Escuchar cambios de autenticación
-        auth.onAuthStateChanged((firebaseUser) => {
-            if (firebaseUser) {
-                // Usuario autenticado en Firebase, actualizar localStorage
-                const datosUsuario = {
-                    uid: firebaseUser.uid,
-                    nombre: firebaseUser.displayName || "",
-                    email: firebaseUser.email || "",
-                    foto: firebaseUser.photoURL || ""
-                };
-                localStorage.setItem("user", JSON.stringify(datosUsuario));
-                actualizarPerfilUsuario(datosUsuario);
-            }
-        });
-    } catch (error) {
-        console.log("Error al inicializar Firebase en empleos:", error);
     }
 }

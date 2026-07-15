@@ -112,6 +112,12 @@ async function iniciarSesionSocial(plataforma) {
     }
 }
 
+function cerrarSesionFirebase() {
+    if (auth) {
+        auth.signOut().catch(error => console.log("Error al cerrar sesión en Firebase:", error));
+    }
+}
+
 // Volver a la página principal (Logo)
 function irAInicio() {
     window.location.href = "index.html";
@@ -119,6 +125,9 @@ function irAInicio() {
 
 // Mensaje de confirmación en consola
 document.addEventListener("DOMContentLoaded", () => {
+    // Solo inicializar si estamos en login.html o si necesitamos desloguear desde empleos
+    const enLoginPage = window.location.pathname.endsWith("login.html");
+    
     const firebaseConfig = window.FIREBASE_CONFIG || {
         apiKey: "TU_API_KEY",
         authDomain: "TU_AUTH_DOMAIN",
@@ -130,32 +139,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const necesitaConfiguracion = !firebaseConfig.apiKey || firebaseConfig.apiKey.includes("TU_");
 
-    if (necesitaConfiguracion) {
+    if (necesitaConfiguracion && enLoginPage) {
         mostrarMensaje("Agrega la configuración de tu proyecto de Firebase en login.js para activar Google y Firestore.");
         return;
     }
 
     try {
-        window.firebase.initializeApp(firebaseConfig);
+        // Evitar inicializar Firebase múltiples veces
+        if (!window.firebase || !window.firebase.apps || window.firebase.apps.length === 0) {
+            window.firebase.initializeApp(firebaseConfig);
+        }
+        
         auth = window.firebase.auth();
         db = window.firebase.firestore();
-        googleProvider = new window.firebase.auth.GoogleAuthProvider();
-        googleProvider.addScope("profile");
-        googleProvider.addScope("email");
-        githubProvider = new window.firebase.auth.GithubAuthProvider();
-        githubProvider.addScope("user:email");
+        
+        if (enLoginPage) {
+            googleProvider = new window.firebase.auth.GoogleAuthProvider();
+            googleProvider.addScope("profile");
+            googleProvider.addScope("email");
+            githubProvider = new window.firebase.auth.GithubAuthProvider();
+            githubProvider.addScope("user:email");
 
-        auth.onAuthStateChanged((usuario) => {
-            if (usuario) {
-                persistirUsuario(usuario);
-                // Solo redirigir a empleos si estamos en la página de login
-                if (window.location.pathname.endsWith("login.html")) {
+            // Solo escuchar cambios de autenticación en login.html
+            auth.onAuthStateChanged((usuario) => {
+                if (usuario) {
+                    persistirUsuario(usuario);
                     window.location.href = "empleos.html";
                 }
-            }
-        });
+            });
+        }
     } catch (error) {
-        mostrarMensaje("No se pudo inicializar Firebase. Revisa la configuración web.");
+        if (enLoginPage) {
+            mostrarMensaje("No se pudo inicializar Firebase. Revisa la configuración web.");
+        }
+        console.log("Error inicializando Firebase:", error);
     }
 
     console.log("Módulo Login cargado correctamente.");
