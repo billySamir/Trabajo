@@ -99,28 +99,11 @@ async function iniciarSesionSocial(plataforma) {
     }
 
     try {
-        const resultado = await auth.signInWithPopup(provider);
-        await guardarUsuarioEnBase(resultado.user);
-        persistirUsuario(resultado.user);
-        window.location.href = "empleos.html";
+        // Usar redirect para evitar problemas de popup en navegadores con políticas estrictas.
+        await auth.signInWithRedirect(provider);
+        return;
     } catch (error) {
-        const popupsBloqueados = [
-            'auth/popup-blocked',
-            'auth/popup-closed-by-user',
-            'auth/cancelled-popup-request',
-            'auth/operation-not-supported-in-this-environment'
-        ];
-
-        if (popupsBloqueados.includes(error.code)) {
-            try {
-                await auth.signInWithRedirect(provider);
-                return;
-            } catch (redirectError) {
-                console.error('Error con signInWithRedirect:', redirectError);
-                mostrarMensaje(redirectError.message || `No se pudo iniciar sesión con ${plataforma}.`);
-                return;
-            }
-        }
+        console.error('Error iniciando sesión social:', error);
 
         if (error.code === 'auth/unauthorized-domain') {
             mostrarMensaje('Dominio no autorizado en Firebase. Añade tu dominio en la consola de Firebase.');
@@ -182,6 +165,13 @@ document.addEventListener("DOMContentLoaded", () => {
             googleProvider.addScope("email");
             githubProvider = new window.firebase.auth.GithubAuthProvider();
             githubProvider.addScope("user:email");
+
+            auth.onAuthStateChanged(async (usuario) => {
+                if (!usuario) return;
+                await guardarUsuarioEnBase(usuario);
+                persistirUsuario(usuario);
+                window.location.href = "empleos.html";
+            });
 
             auth.getRedirectResult()
                 .then(async (result) => {
