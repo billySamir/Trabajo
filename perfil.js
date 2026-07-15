@@ -120,11 +120,15 @@ function guardarCampo(campo, valor) {
 }
 
 // ====== EDICIÓN SENSIBLE (Email, Contraseña, Celular) ======
+let recaptchaVerifier = null;
+
 function toggleEdicionSensible(inputId, tipo) {
     cambioActual = {
         inputId: inputId,
         tipo: tipo,
-        valorOriginal: document.getElementById(inputId).value
+        valorOriginal: document.getElementById(inputId).value,
+        verificationId: null,
+        telefonoCode: null
     };
     
     const modal = document.getElementById('confirmation-modal');
@@ -135,27 +139,34 @@ function toggleEdicionSensible(inputId, tipo) {
     title.textContent = 'Confirmar cambio de ' + tipo;
     
     if (tipo === 'contraseña') {
-        message.textContent = 'Por seguridad, necesitamos tu contraseña actual para cambiar tu contraseña.';
+        message.textContent = 'Se enviará un enlace al correo registrado para completar el cambio de contraseña.';
         inputs.innerHTML = `
             <input type="password" id="currentPassword" placeholder="Contraseña actual" class="w-full p-3 border border-slate-200 rounded-xl mb-3 outline-none focus:ring-2 focus:ring-indigo-500">
             <input type="password" id="newPassword" placeholder="Nueva contraseña" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
         `;
     } else if (tipo === 'correo') {
-        message.textContent = 'Se enviará un código de verificación a tu nuevo correo.';
+        message.textContent = 'Necesitamos tu contraseña actual y enviaremos un correo de verificación al nuevo correo.';
         inputs.innerHTML = `
-            <input type="email" id="newEmail" placeholder="Nuevo correo electrónico" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+            <input type="email" id="newEmail" placeholder="Nuevo correo electrónico" class="w-full p-3 border border-slate-200 rounded-xl mb-3 outline-none focus:ring-2 focus:ring-indigo-500">
+            <input type="password" id="currentPassword" placeholder="Contraseña actual" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
         `;
     } else if (tipo === 'celular') {
-        message.textContent = 'Ingresa tu nuevo número de celular.';
+        const currentPhone = document.getElementById('inputPhone').value || '';
+        message.textContent = 'Se enviará un código al número actual para autorizar el cambio.';
         inputs.innerHTML = `
-            <input type="tel" id="newPhone" placeholder="+51 999 999 999" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+            <div class="mb-3 text-sm text-slate-600">Número actual: <strong>${currentPhone}</strong></div>
+            <input type="tel" id="newPhone" placeholder="Nuevo número de celular" class="w-full p-3 border border-slate-200 rounded-xl mb-3 outline-none focus:ring-2 focus:ring-indigo-500">
+            <button type="button" id="sendPhoneCodeButton" onclick="enviarCodigoCelularActual()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition mb-3">
+                Enviar código al número actual
+            </button>
+            <input type="text" id="phoneVerificationCode" placeholder="Código de verificación" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 hidden">
         `;
     }
     
     modal.classList.remove('hidden');
 }
 
-function confirmarCambio() {
+async function confirmarCambio() {
     if (!cambioActual) return;
     
     const tipo = cambioActual.tipo;
@@ -174,29 +185,80 @@ function confirmarCambio() {
             return;
         }
         
-        // En un caso real, aquí validarías la contraseña actual
-        alert('✅ Contraseña cambiada correctamente');
+        const reauthOk = await reauthenticateWithPassword(currentPassword);
+        if (!reauthOk) return;
+
+        try {
+            await auth.sendPasswordResetEmail(auth.currentUser.email);
+            alert('✅ Se envió un enlace de restablecimiento a tu correo. Sigue las instrucciones para cambiar tu contraseña.');
+        } catch (error) {
+            console.error('Error enviando correo de restablecimiento:', error);
+            alert('⚠️ No se pudo enviar el correo de restablecimiento. Intenta nuevamente.');
+            return;
+        }
     } else if (tipo === 'correo') {
         const newEmail = document.getElementById('newEmail')?.value;
+        const currentPassword = document.getElementById('currentPassword')?.value;
         
         if (!newEmail || !newEmail.includes('@')) {
             alert('⚠️ Ingresa un correo válido');
             return;
         }
-        
-        document.getElementById('inputEmail').value = newEmail;
-        guardarCampo('correo', newEmail);
-        alert('✅ Correo actualizado. Se ha enviado un código de verificación.');
-    } else if (tipo === 'celular') {
-        const newPhone = document.getElementById('newPhone')?.value;
-        
-        if (!newPhone) {
-            alert('⚠️ Ingresa un número de celular');
+        if (!currentPassword) {
+            alert('⚠️ Ingresa tu contraseña actual para confirmar el cambio');
             return;
         }
         
-        document.getElementById('inputPhone').value = newPhone;
-        guardarCampo('telefono', newPhone);
+        const reauthOk = await reauthenticateWithPassword(currentPassword);
+        if (!reauthOk) return;
+
+        try {
+            await auth.currentUser.updateEmail(newEmail);
+            await auth.currentUser.sendEmailVerification();
+            document.getElementById('inputEmail').value = newEmail;
+            guardarCampo('correo', newEmail);
+            alert('✅ Correo actualizado. Se envió un correo de verificación al nuevo correo. Comprueba tu bandeja.');
+        } catch (error) {
+            console.error('Error actualizando correo:', error);
+            alert(error.message || '⚠️ No se pudo actualizar el correo.');
+            return;
+        }
+    } else if (tipo === 'celular') {
+        const newPhone = document.getElementById('newPhone')?.value;
+        const code = document.getElementById('phoneVerificationCode')?.value;
+
+        if (!newPhone) {
+            alert('⚠️ Ingresa un nuevo número de celular');
+            return;
+        }
+
+        if (!code) {
+            alert('⚠️ Ingresa el código de verificación enviado al número actual');
+            return;
+        }
+
+        try {
+            if (cambioActual.verificationId) {
+                const credential = window.firebase.auth.PhoneAuthProvider.credential(cambioActual.verificationId, code);
+                await auth.currentUser.reauthenticateWithCredential(credential);
+            } else if (cambioActual.telefonoCode) {
+                if (code !== cambioActual.telefonoCode) {
+                    alert('⚠️ Código incorrecto');
+                    return;
+                }
+            } else {
+                alert('⚠️ Primero debes enviar el código al número actual');
+                return;
+            }
+
+            document.getElementById('inputPhone').value = newPhone;
+            guardarCampo('telefono', newPhone);
+            alert('✅ Número de celular actualizado correctamente');
+        } catch (error) {
+            console.error('Error verificando código de celular:', error);
+            alert('⚠️ La verificación del código falló. Intenta nuevamente.');
+            return;
+        }
     }
     
     cancelarConfirmacion();
@@ -206,6 +268,64 @@ function cancelarConfirmacion() {
     document.getElementById('confirmation-modal').classList.add('hidden');
     document.getElementById('modal-inputs').innerHTML = '';
     cambioActual = null;
+}
+
+async function reauthenticateWithPassword(password) {
+    if (!auth || !auth.currentUser || !auth.currentUser.email) {
+        alert('⚠️ No se pudo verificar tu sesión. Vuelve a iniciar sesión.');
+        return false;
+    }
+
+    const credential = window.firebase.auth.EmailAuthProvider.credential(auth.currentUser.email, password);
+    try {
+        await auth.currentUser.reauthenticateWithCredential(credential);
+        return true;
+    } catch (error) {
+        console.error('Error reautenticando usuario:', error);
+        alert('⚠️ La contraseña actual no es correcta.');
+        return false;
+    }
+}
+
+async function enviarCodigoCelularActual() {
+    const currentPhone = document.getElementById('inputPhone').value?.trim();
+    const newPhone = document.getElementById('newPhone')?.value?.trim();
+    const codeInput = document.getElementById('phoneVerificationCode');
+    const sendButton = document.getElementById('sendPhoneCodeButton');
+
+    if (!currentPhone) {
+        alert('⚠️ No hay un número actual registrado.');
+        return;
+    }
+    if (!newPhone) {
+        alert('⚠️ Ingresa el nuevo número de celular antes de enviar el código.');
+        return;
+    }
+
+    try {
+        if (!window.firebase || !window.firebase.auth || !window.firebase.auth.PhoneAuthProvider) {
+            throw new Error('PhoneAuth no disponible');
+        }
+
+        if (recaptchaVerifier) {
+            recaptchaVerifier.clear();
+        }
+        recaptchaVerifier = new window.firebase.auth.RecaptchaVerifier('recaptcha-container', {
+            size: 'invisible'
+        });
+
+        const phoneProvider = new window.firebase.auth.PhoneAuthProvider(auth);
+        cambioActual.verificationId = await phoneProvider.verifyPhoneNumber(currentPhone, recaptchaVerifier);
+        codeInput.classList.remove('hidden');
+        sendButton.disabled = true;
+        alert('✅ Se envió un código al número actual. Ingresa el código para confirmar el cambio.');
+    } catch (error) {
+        console.warn('No se pudo enviar SMS real, usando código simulado:', error);
+        cambioActual.telefonoCode = Math.floor(100000 + Math.random() * 900000).toString();
+        codeInput.classList.remove('hidden');
+        sendButton.disabled = true;
+        alert(`✅ Código simulado generado para pruebas: ${cambioActual.telefonoCode}`);
+    }
 }
 
 // ====== CURRÍCULUM ======
@@ -388,7 +508,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         auth = window.firebase.auth();
         db = window.firebase.firestore();
-        usuarioActual = auth.currentUser;
+
+        auth.onAuthStateChanged((usuario) => {
+            if (usuario) {
+                usuarioActual = usuario;
+            } else {
+                localStorage.removeItem('user');
+                window.location.href = 'login.html';
+            }
+        });
     } catch (error) {
         console.log("Firebase error:", error);
     }
