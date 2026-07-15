@@ -99,11 +99,17 @@ async function iniciarSesionSocial(plataforma) {
     }
 
     try {
-        // Usar redirect para evitar problemas de popup en navegadores con políticas estrictas.
-        await auth.signInWithRedirect(provider);
-        return;
+        const resultado = await auth.signInWithPopup(provider);
+        await guardarUsuarioEnBase(resultado.user);
+        persistirUsuario(resultado.user);
+        window.location.href = "empleos.html";
     } catch (error) {
         console.error('Error iniciando sesión social:', error);
+
+        if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
+            mostrarMensaje('El popup fue bloqueado o cerrado. Permite ventanas emergentes y vuelve a intentarlo.');
+            return;
+        }
 
         if (error.code === 'auth/unauthorized-domain') {
             mostrarMensaje('Dominio no autorizado en Firebase. Añade tu dominio en la consola de Firebase.');
@@ -166,27 +172,8 @@ document.addEventListener("DOMContentLoaded", () => {
             githubProvider = new window.firebase.auth.GithubAuthProvider();
             githubProvider.addScope("user:email");
 
-            auth.onAuthStateChanged(async (usuario) => {
-                if (!usuario) return;
-                await guardarUsuarioEnBase(usuario);
-                persistirUsuario(usuario);
-                window.location.href = "empleos.html";
-            });
-
-            auth.getRedirectResult()
-                .then(async (result) => {
-                    if (result.user) {
-                        await guardarUsuarioEnBase(result.user);
-                        persistirUsuario(result.user);
-                        window.location.href = "empleos.html";
-                    }
-                })
-                .catch((redirectError) => {
-                    console.warn('Error al procesar redirect de Firebase:', redirectError);
-                    if (redirectError.code === 'auth/unauthorized-domain') {
-                        mostrarMensaje('Dominio no autorizado en Firebase. Añade este dominio en la consola de Firebase.');
-                    }
-                });
+            // No necesitamos redirect para el flujo con Google; usamos popup.
+            // Mantener solo la inicialización del provider.
         }
     } catch (error) {
         if (enLoginPage) {
