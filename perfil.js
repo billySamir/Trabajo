@@ -424,6 +424,7 @@ function cargarPostulaciones() {
 function cerrarSesion() {
     if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
         localStorage.removeItem('user');
+        sessionStorage.removeItem('auth');
         if (typeof cerrarSesionFirebase === 'function') {
             cerrarSesionFirebase();
         }
@@ -432,24 +433,47 @@ function cerrarSesion() {
 }
 
 function eliminarCuenta() {
-    if (confirm('⚠️ ATENCIÓN: Esta acción es IRREVERSIBLE. ¿Estás seguro de que deseas eliminar tu cuenta permanentemente?')) {
-        if (confirm('Esto eliminará todos tus datos. Escribe "ELIMINAR" para confirmar.')) {
-            // En un caso real, aquí harías la eliminación en Firebase
-            localStorage.removeItem('user');
-            if (auth) {
-                auth.currentUser.delete();
-            }
-            alert('✅ Cuenta eliminada');
-            window.location.href = 'index.html';
-        }
+    const modal = document.getElementById('delete-account-modal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+}
+
+async function confirmarEliminacionCuenta() {
+    if (!auth || !usuarioActual) {
+        alert('⚠️ No se pudo verificar tu sesión. Vuelve a iniciar sesión.');
+        return;
     }
+
+    try {
+        const uid = usuarioActual.uid;
+        if (db && uid) {
+            await db.collection('users').doc(uid).delete();
+        }
+
+        await auth.currentUser.delete();
+        localStorage.removeItem('user');
+        sessionStorage.removeItem('auth');
+        alert('✅ Cuenta eliminada permanentemente de Firebase.');
+        window.location.href = 'index.html';
+    } catch (error) {
+        console.error('Error eliminando cuenta:', error);
+        alert(error.message || '⚠️ No se pudo eliminar la cuenta. Vuelve a iniciar sesión y prueba de nuevo.');
+    }
+}
+
+function cancelarEliminacionCuenta() {
+    const modal = document.getElementById('delete-account-modal');
+    if (!modal) return;
+    modal.classList.add('hidden');
 }
 
 // ====== INICIALIZACIÓN ======
 document.addEventListener('DOMContentLoaded', () => {
     const usuario = JSON.parse(localStorage.getItem('user') || '{}');
     
-    if (!usuario.uid) {
+    if (!usuario.uid || sessionStorage.getItem('auth') !== 'true') {
+        localStorage.removeItem('user');
+        sessionStorage.removeItem('auth');
         window.location.href = 'login.html';
         return;
     }

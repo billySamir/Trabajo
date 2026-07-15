@@ -33,6 +33,7 @@ function guardarUsuarioEnBase(user) {
 function persistirUsuario(user) {
     if (!user) {
         localStorage.removeItem("user");
+        sessionStorage.removeItem("auth");
         return;
     }
 
@@ -45,6 +46,7 @@ function persistirUsuario(user) {
     };
 
     localStorage.setItem("user", JSON.stringify(datosUsuario));
+    sessionStorage.setItem("auth", "true");
 }
 
 async function iniciarSesion() {
@@ -147,20 +149,16 @@ document.addEventListener("DOMContentLoaded", () => {
         auth = window.firebase.auth();
         db = window.firebase.firestore();
         
+        auth.setPersistence(window.firebase.auth.Auth.Persistence.SESSION).catch(error => {
+            console.log('No se pudo configurar la persistencia de sesión:', error);
+        });
+
         if (enLoginPage) {
             googleProvider = new window.firebase.auth.GoogleAuthProvider();
             googleProvider.addScope("profile");
             googleProvider.addScope("email");
             githubProvider = new window.firebase.auth.GithubAuthProvider();
             githubProvider.addScope("user:email");
-
-            // Solo escuchar cambios de autenticación en login.html
-            auth.onAuthStateChanged((usuario) => {
-                if (usuario) {
-                    persistirUsuario(usuario);
-                    window.location.href = "empleos.html";
-                }
-            });
         }
     } catch (error) {
         if (enLoginPage) {

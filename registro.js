@@ -14,6 +14,7 @@ function mostrarMensaje(texto, tipo = "error") {
 function persistirUsuario(user) {
     if (!user) {
         localStorage.removeItem("user");
+        sessionStorage.removeItem("auth");
         return;
     }
 
@@ -25,6 +26,7 @@ function persistirUsuario(user) {
     };
 
     localStorage.setItem("user", JSON.stringify(datosUsuario));
+    sessionStorage.setItem("auth", "true");
 }
 
 function guardarUsuarioEnBase(user) {
