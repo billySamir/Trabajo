@@ -66,7 +66,31 @@ async function registrarCuenta() {
         persistirUsuario(credenciales.user);
         window.location.href = "empleos.html";
     } catch (error) {
-        mostrarMensaje(error.message || "No se pudo crear la cuenta.");
+        let mensaje = "No se pudo crear la cuenta.";
+
+        if (error.code === 'auth/email-already-in-use') {
+            mensaje = 'Ese correo ya está registrado. Inicia sesión o usa otro correo.';
+        } else if (error.code === 'auth/invalid-email') {
+            mensaje = 'Ingresa un correo electrónico válido.';
+        } else if (error.code === 'auth/weak-password') {
+            mensaje = 'La contraseña debe tener al menos 6 caracteres.';
+        }
+
+        mostrarMensaje(mensaje, 'error');
+    }
+}
+
+function togglePasswordVisibility() {
+    const passwordInput = document.getElementById('passwordInput');
+    const icon = document.getElementById('passwordEyeIcon');
+    if (!passwordInput || !icon) return;
+
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.956 9.956 0 012.223-3.444m1.63-1.63A9.958 9.958 0 0112 5c4.478 0 8.268 2.943 9.542 7-.394 1.256-1.01 2.423-1.8 3.44m-1.294 1.334A8.035 8.035 0 0112 17a7.993 7.993 0 01-6.858-3.713M15 12a3 3 0 11-6 0 3 3 0 016 0z" />';
+    } else {
+        passwordInput.type = 'password';
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />\n                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
     }
 }
 
