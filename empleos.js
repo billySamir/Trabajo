@@ -214,9 +214,21 @@ document.addEventListener("DOMContentLoaded", () => {
 // Función para actualizar el avatar en empleos
 function actualizarAvatarEmpleos(usuario) {
     const avatar = document.getElementById('avatar-btn');
-    if (avatar) {
+    if (!avatar) return;
+
+    if (usuario.foto) {
+        avatar.style.backgroundImage = `url('${usuario.foto}')`;
+        avatar.style.backgroundSize = 'cover';
+        avatar.style.backgroundPosition = 'center';
+        avatar.textContent = '';
+        avatar.classList.remove('bg-indigo-600');
+    } else {
         const nombre = usuario.nombre || usuario.email || 'U';
+        avatar.style.backgroundImage = '';
+        avatar.style.backgroundSize = '';
+        avatar.style.backgroundPosition = '';
         avatar.textContent = nombre.charAt(0).toUpperCase();
+        avatar.classList.add('bg-indigo-600');
     }
 }
 

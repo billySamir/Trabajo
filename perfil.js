@@ -123,6 +123,12 @@ function guardarCampo(campo, valor) {
 let recaptchaVerifier = null;
 
 function toggleEdicionSensible(inputId, tipo) {
+    const usuarioLocal = JSON.parse(localStorage.getItem('user') || '{}');
+    if (tipo === 'contraseña' && usuarioLocal.provider && usuarioLocal.provider !== 'firebase') {
+        alert('⚠️ Esta cuenta se creó con Google y no tiene contraseña local. Inicia sesión con Google o vincula una contraseña desde Firebase.');
+        return;
+    }
+
     cambioActual = {
         inputId: inputId,
         tipo: tipo,
@@ -456,6 +462,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (nameInput) nameInput.value = usuario.nombre || '';
     if (emailInput) emailInput.value = usuario.correo || usuario.email || '';
     if (phoneInput) phoneInput.value = usuario.telefono || '';
+
+    const provider = usuario.provider || 'firebase';
+    const passwordInput = document.getElementById('inputPassword');
+    if (passwordInput) {
+        if (provider !== 'firebase') {
+            passwordInput.value = 'Inicia sesión con Google';
+        } else {
+            passwordInput.value = '••••••••';
+        }
+    }
     
     // Actualizar avatar
     actualizarAvatar(usuario);

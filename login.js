@@ -40,7 +40,8 @@ function persistirUsuario(user) {
         uid: user.uid,
         nombre: user.displayName || "",
         email: user.email || "",
-        foto: user.photoURL || ""
+        foto: user.photoURL || "",
+        provider: user.providerData?.[0]?.providerId || "firebase"
     };
 
     localStorage.setItem("user", JSON.stringify(datosUsuario));
@@ -70,14 +71,7 @@ async function iniciarSesion() {
         window.location.href = "empleos.html";
     } catch (error) {
         if (error.code === "auth/user-not-found") {
-            try {
-                const credenciales = await auth.createUserWithEmailAndPassword(email, password);
-                await guardarUsuarioEnBase(credenciales.user);
-                persistirUsuario(credenciales.user);
-                window.location.href = "empleos.html";
-            } catch (crearError) {
-                mostrarMensaje(crearError.message || "No se pudo crear la cuenta.");
-            }
+            mostrarMensaje("Correo no registrado. Por favor regístrate primero.");
             return;
         }
 
