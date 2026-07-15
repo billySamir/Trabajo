@@ -13,19 +13,19 @@
         <h2 class="text-2xl font-extrabold text-indigo-700 cursor-pointer tracking-tight" onclick="irAInicio()">TalentMatch</h2>
         
         <div class="relative">
-            <div onclick="toggleMenu()" class="w-11 h-11 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold cursor-pointer hover:bg-indigo-700 transition shadow-md select-none">
-                JD
+            <div id="avatar-btn" onclick="toggleMenu()" class="w-11 h-11 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold cursor-pointer hover:bg-indigo-700 transition shadow-md select-none">
+                A
             </div>
             
             <div id="profile-menu" class="absolute right-0 mt-3 bg-white shadow-2xl rounded-2xl p-2 w-56 border border-slate-100 hidden z-50">
                 <div class="px-4 py-3 border-b border-slate-100 mb-2">
-                    <p class="text-sm font-extrabold text-slate-800">Juan Doe</p>
-                    <p class="text-xs text-slate-500 truncate">juan.doe@email.com</p>
+                    <p class="text-sm font-extrabold text-slate-800">Usuario</p>
+                    <p class="text-xs text-slate-500 truncate">usuario@email.com</p>
                 </div>
                 <button onclick="irAPerfil()" class="block text-sm text-left w-full px-4 py-2.5 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition font-medium">Datos Personales</button>
-                <button class="block text-sm text-left w-full px-4 py-2.5 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition font-medium">Mi Currículum</button>
-                <button class="block text-sm text-left w-full px-4 py-2.5 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition font-medium">Mis Postulaciones</button>
-                <button class="block text-sm text-left w-full px-4 py-2.5 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition font-medium">Configuración</button>
+                <button onclick="irACurriculum()" class="block text-sm text-left w-full px-4 py-2.5 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition font-medium">Mi Currículum</button>
+                <button onclick="irAPostulaciones()" class="block text-sm text-left w-full px-4 py-2.5 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition font-medium">Mis Postulaciones</button>
+                <button onclick="irAConfiguracion()" class="block text-sm text-left w-full px-4 py-2.5 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition font-medium">Configuración</button>
                 <div class="h-px bg-slate-100 my-1"></div>
                 <button onclick="cerrarSesion()" class="block text-sm text-left w-full px-4 py-2.5 rounded-xl text-red-600 font-bold hover:bg-red-50 transition">Salir</button>
             </div>

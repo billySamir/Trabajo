@@ -96,7 +96,19 @@ document.addEventListener('click', function(event) {
 
 // Navegación
 function irAPerfil() {
-    window.location.href = "perfil.html";
+    window.location.href = "perfil.html#datos";
+}
+
+function irACurriculum() {
+    window.location.href = "perfil.html#curriculum";
+}
+
+function irAPostulaciones() {
+    window.location.href = "perfil.html#postulaciones";
+}
+
+function irAConfiguracion() {
+    window.location.href = "perfil.html#configuracion";
 }
 
 function irAInicio() {
@@ -189,23 +201,34 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
         }
     } else {
-        // Actualizar el nombre del usuario en el perfil
-        actualizarPerfilUsuario(usuario);
+        // Actualizar avatar con la primera letra del nombre
+        actualizarAvatarEmpleos(usuario);
+        // Actualizar el menú de perfil
+        actualizarMenuPerfil(usuario);
     }
     
     renderizarEmpleos(empleos);
     console.log("Módulo Empleos cargado correctamente.");
 });
 
-// Función para actualizar el perfil del usuario
-function actualizarPerfilUsuario(usuario) {
-    const nombreElemento = document.querySelector('.px-4.py-3 .text-sm.font-extrabold');
-    const emailElemento = document.querySelector('.px-4.py-3 .text-xs');
-    
-    if (nombreElemento) {
-        nombreElemento.textContent = usuario.nombre || usuario.email || 'Usuario';
+// Función para actualizar el avatar en empleos
+function actualizarAvatarEmpleos(usuario) {
+    const avatar = document.getElementById('avatar-btn');
+    if (avatar) {
+        const nombre = usuario.nombre || usuario.email || 'U';
+        avatar.textContent = nombre.charAt(0).toUpperCase();
     }
-    if (emailElemento) {
-        emailElemento.textContent = usuario.email || '';
+}
+
+// Función para actualizar el menú de perfil con datos del usuario
+function actualizarMenuPerfil(usuario) {
+    const nombreElement = document.querySelector('#profile-menu .text-sm.font-extrabold');
+    const emailElement = document.querySelector('#profile-menu .text-xs.text-slate-500');
+    
+    if (nombreElement) {
+        nombreElement.textContent = usuario.nombre || usuario.email || 'Usuario';
+    }
+    if (emailElement) {
+        emailElement.textContent = usuario.email || '';
     }
 }

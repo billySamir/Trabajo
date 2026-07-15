@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TalentMatch - Datos Personales</title>
+    <title>TalentMatch - Mi Perfil</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -18,61 +18,174 @@
         </button>
     </header>
 
-    <main class="max-w-3xl mx-auto p-6 md:p-10">
-        <h1 class="text-3xl font-extrabold mb-8 text-slate-800 tracking-tight">Datos Personales</h1>
-        
-        <div class="bg-white p-8 rounded-[2rem] shadow-xl border border-slate-100 flex flex-col gap-8">
-            
-            <div class="flex items-center gap-6 pb-8 border-b border-slate-100">
-                <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-2xl font-black shadow-inner">
-                    JD
-                </div>
-                <div>
-                    <h3 class="font-bold text-slate-800 text-lg mb-1">Foto de perfil</h3>
-                    <button class="text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition bg-indigo-50 px-4 py-2 rounded-lg">
-                        Cambiar foto
-                    </button>
-                </div>
-            </div>
+    <main class="max-w-4xl mx-auto p-6 md:p-10">
+        <!-- Tabs de navegación -->
+        <div class="flex gap-2 mb-8 border-b border-slate-200 overflow-x-auto">
+            <button onclick="cambiarTab('datos')" id="tab-datos" class="tab-btn active px-6 py-3 font-semibold text-indigo-600 border-b-2 border-indigo-600 whitespace-nowrap">
+                Datos Personales
+            </button>
+            <button onclick="cambiarTab('curriculum')" id="tab-curriculum" class="tab-btn px-6 py-3 font-semibold text-slate-600 hover:text-slate-800 whitespace-nowrap">
+                Mi Currículum
+            </button>
+            <button onclick="cambiarTab('postulaciones')" id="tab-postulaciones" class="tab-btn px-6 py-3 font-semibold text-slate-600 hover:text-slate-800 whitespace-nowrap">
+                Mis Postulaciones
+            </button>
+            <button onclick="cambiarTab('configuracion')" id="tab-configuracion" class="tab-btn px-6 py-3 font-semibold text-slate-600 hover:text-slate-800 whitespace-nowrap">
+                Configuración
+            </button>
+        </div>
 
-            <div class="flex flex-col gap-6">
+        <!-- TAB 1: DATOS PERSONALES -->
+        <div id="contenido-datos" class="tab-content">
+            <h1 class="text-3xl font-extrabold mb-8 text-slate-800 tracking-tight">Datos Personales</h1>
+            
+            <div class="bg-white p-8 rounded-[2rem] shadow-xl border border-slate-100 flex flex-col gap-8">
                 
+                <!-- Foto de perfil -->
+                <div class="flex items-center gap-6 pb-8 border-b border-slate-100">
+                    <div class="relative group">
+                        <div id="avatar-display" class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-2xl font-black shadow-inner cursor-pointer group-hover:opacity-80 transition">
+                            A
+                        </div>
+                        <div class="absolute inset-0 bg-black/20 rounded-full opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                            <span class="text-white text-xs font-bold">Cambiar</span>
+                        </div>
+                        <input type="file" id="inputFoto" accept="image/*" style="display:none;" onchange="cambiarFoto(event)">
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-lg mb-1">Foto de perfil</h3>
+                        <button onclick="document.getElementById('inputFoto').click()" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition bg-indigo-50 px-4 py-2 rounded-lg">
+                            Cambiar foto
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Nombre Completo -->
                 <div class="flex justify-between items-center bg-slate-50 p-5 rounded-2xl border border-slate-100">
                     <div class="flex-1 mr-4">
                         <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Nombre Completo</label>
-                        <input type="text" id="inputName" value="Juan Doe" disabled class="w-full bg-transparent text-slate-800 font-semibold outline-none focus:border-b-2 focus:border-indigo-500 pb-1 disabled:opacity-90">
+                        <input type="text" id="inputName" placeholder="Tu nombre" disabled class="w-full bg-transparent text-slate-800 font-semibold outline-none focus:border-b-2 focus:border-indigo-500 pb-1 disabled:opacity-90">
                     </div>
-                    <button onclick="toggleEdicion('inputName', this)" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition px-3 py-1">Editar</button>
+                    <button onclick="toggleEdicion('inputName', this, 'nombre')" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition px-3 py-1">Editar</button>
                 </div>
 
+                <!-- Correo (Requiere confirmación) -->
                 <div class="flex justify-between items-center bg-slate-50 p-5 rounded-2xl border border-slate-100">
                     <div class="flex-1 mr-4">
                         <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Correo Electrónico</label>
-                        <input type="email" id="inputEmail" value="juan.doe@email.com" disabled class="w-full bg-transparent text-slate-800 font-semibold outline-none focus:border-b-2 focus:border-indigo-500 pb-1 disabled:opacity-90">
+                        <input type="email" id="inputEmail" placeholder="tu@email.com" disabled class="w-full bg-transparent text-slate-800 font-semibold outline-none focus:border-b-2 focus:border-indigo-500 pb-1 disabled:opacity-90">
                     </div>
-                    <button onclick="toggleEdicion('inputEmail', this)" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition px-3 py-1">Editar</button>
+                    <button onclick="toggleEdicionSensible('inputEmail', 'correo')" class="text-sm font-bold text-orange-600 hover:text-orange-800 transition px-3 py-1">⚠️ Editar</button>
                 </div>
 
+                <!-- Celular (Requiere confirmación) -->
                 <div class="flex justify-between items-center bg-slate-50 p-5 rounded-2xl border border-slate-100">
                     <div class="flex-1 mr-4">
                         <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Número de Celular</label>
-                        <input type="tel" id="inputPhone" value="+51 999 999 999" disabled class="w-full bg-transparent text-slate-800 font-semibold outline-none focus:border-b-2 focus:border-indigo-500 pb-1 disabled:opacity-90">
+                        <input type="tel" id="inputPhone" placeholder="+51 999 999 999" disabled class="w-full bg-transparent text-slate-800 font-semibold outline-none focus:border-b-2 focus:border-indigo-500 pb-1 disabled:opacity-90">
                     </div>
-                    <button onclick="toggleEdicion('inputPhone', this)" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition px-3 py-1">Editar</button>
+                    <button onclick="toggleEdicionSensible('inputPhone', 'celular')" class="text-sm font-bold text-orange-600 hover:text-orange-800 transition px-3 py-1">⚠️ Editar</button>
                 </div>
 
+                <!-- Contraseña (Requiere confirmación) -->
                 <div class="flex justify-between items-center bg-slate-50 p-5 rounded-2xl border border-slate-100">
                     <div class="flex-1 mr-4">
                         <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Contraseña</label>
-                        <input type="password" id="inputPassword" value="********" disabled class="w-full bg-transparent text-slate-800 font-semibold outline-none focus:border-b-2 focus:border-indigo-500 pb-1 disabled:opacity-90">
+                        <input type="password" id="inputPassword" value="••••••••" disabled class="w-full bg-transparent text-slate-800 font-semibold outline-none focus:border-b-2 focus:border-indigo-500 pb-1 disabled:opacity-90">
                     </div>
-                    <button onclick="toggleEdicion('inputPassword', this)" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition px-3 py-1">Editar</button>
+                    <button onclick="toggleEdicionSensible('inputPassword', 'contraseña')" class="text-sm font-bold text-red-600 hover:text-red-800 transition px-3 py-1">🔒 Editar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: MI CURRÍCULUM -->
+        <div id="contenido-curriculum" class="tab-content hidden">
+            <h1 class="text-3xl font-extrabold mb-8 text-slate-800 tracking-tight">Mi Currículum</h1>
+            
+            <div class="bg-white p-8 rounded-[2rem] shadow-xl border border-slate-100 flex flex-col gap-6">
+                <div id="curriculum-content" class="flex flex-col gap-4">
+                    <p class="text-slate-500 text-center py-8">No has subido ningún currículum todavía</p>
+                </div>
+                
+                <div class="border-t border-slate-100 pt-6">
+                    <button onclick="subirCurriculum()" class="w-full bg-indigo-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-indigo-700 transition">
+                        📄 Subir Currículum
+                    </button>
+                    <input type="file" id="inputCurriculum" accept=".pdf,.doc,.docx" style="display:none;" onchange="guardarCurriculum(event)">
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: MIS POSTULACIONES -->
+        <div id="contenido-postulaciones" class="tab-content hidden">
+            <h1 class="text-3xl font-extrabold mb-8 text-slate-800 tracking-tight">Mis Postulaciones</h1>
+            
+            <div class="bg-white p-8 rounded-[2rem] shadow-xl border border-slate-100">
+                <div id="postulaciones-list" class="flex flex-col gap-4">
+                    <p class="text-slate-500 text-center py-8">Aún no te has postulado a ninguna oferta</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: CONFIGURACIÓN -->
+        <div id="contenido-configuracion" class="tab-content hidden">
+            <h1 class="text-3xl font-extrabold mb-8 text-slate-800 tracking-tight">Configuración</h1>
+            
+            <div class="bg-white p-8 rounded-[2rem] shadow-xl border border-slate-100 flex flex-col gap-6">
+                
+                <!-- Notificaciones -->
+                <div class="pb-6 border-b border-slate-100">
+                    <h3 class="font-bold text-slate-800 text-lg mb-4">Notificaciones</h3>
+                    <div class="flex items-center justify-between">
+                        <label class="text-slate-700">Recibir notificaciones de nuevas ofertas</label>
+                        <input type="checkbox" id="notificaciones" checked class="w-5 h-5 cursor-pointer">
+                    </div>
                 </div>
 
+                <!-- Privacidad -->
+                <div class="pb-6 border-b border-slate-100">
+                    <h3 class="font-bold text-slate-800 text-lg mb-4">Privacidad</h3>
+                    <div class="flex items-center justify-between">
+                        <label class="text-slate-700">Perfil visible para empresas</label>
+                        <input type="checkbox" id="privacidad" checked class="w-5 h-5 cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- Peligro: Cerrar sesión -->
+                <div class="pb-6 border-b border-slate-100">
+                    <h3 class="font-bold text-slate-800 text-lg mb-4">Sesión</h3>
+                    <button onclick="cerrarSesion()" class="bg-red-100 text-red-600 font-bold py-3 px-6 rounded-xl hover:bg-red-200 transition">
+                        🚪 Cerrar Sesión
+                    </button>
+                </div>
+
+                <!-- Eliminar cuenta -->
+                <div>
+                    <h3 class="font-bold text-red-600 text-lg mb-4">Zona de Peligro</h3>
+                    <button onclick="eliminarCuenta()" class="bg-red-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-red-700 transition">
+                        ⚠️ Eliminar Cuenta Permanentemente
+                    </button>
+                </div>
             </div>
-            
         </div>
     </main>
+
+    <!-- Modal de confirmación -->
+    <div id="confirmation-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-90% shadow-2xl">
+            <h2 id="modal-title" class="text-xl font-bold text-slate-800 mb-4">Confirmar cambio</h2>
+            <p id="modal-message" class="text-slate-600 mb-6"></p>
+            <div id="modal-inputs" class="mb-6"></div>
+            <div class="flex gap-3">
+                <button onclick="cancelarConfirmacion()" class="flex-1 bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-xl hover:bg-slate-300 transition">
+                    Cancelar
+                </button>
+                <button onclick="confirmarCambio()" class="flex-1 bg-indigo-600 text-white font-bold py-2 px-4 rounded-xl hover:bg-indigo-700 transition">
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script src="firebase-config.js"></script>
     <script src="perfil.js"></script>
