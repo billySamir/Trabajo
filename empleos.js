@@ -101,8 +101,25 @@ function postular() {
     alert('¡Te has postulado con éxito a esta posición!');
 }
 
+// Verificar si el usuario está autenticado
+function verificarAutenticacion() {
+    const usuarioGuardado = localStorage.getItem("user");
+    
+    if (!usuarioGuardado) {
+        // Si no hay usuario autenticado, redirigir a login
+        console.log("Usuario no autenticado. Redirigiendo a login...");
+        window.location.href = "login.html";
+        return false;
+    }
+    
+    return true;
+}
+
 // Inicializar la vista al cargar la página
 document.addEventListener("DOMContentLoaded", () => {
-    renderizarEmpleos(empleos);
-    console.log("Módulo Empleos cargado correctamente.");
+    // Verificar autenticación primero
+    if (verificarAutenticacion()) {
+        renderizarEmpleos(empleos);
+        console.log("Módulo Empleos cargado correctamente.");
+    }
 });
