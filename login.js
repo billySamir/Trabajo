@@ -148,7 +148,8 @@ document.addEventListener("DOMContentLoaded", () => {
         auth.onAuthStateChanged((usuario) => {
             if (usuario) {
                 persistirUsuario(usuario);
-                if (window.location.pathname.endsWith("login.html") || window.location.pathname.endsWith("/")) {
+                // Solo redirigir a empleos si estamos en la página de login
+                if (window.location.pathname.endsWith("login.html")) {
                     window.location.href = "empleos.html";
                 }
             }

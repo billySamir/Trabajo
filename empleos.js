@@ -67,6 +67,17 @@ function filtrarPorTexto() {
     renderizarEmpleos(filtrados);
 }
 
+// Verificar si el usuario está autenticado
+function usuarioAutenticado() {
+    return localStorage.getItem("user") !== null;
+}
+
+// Obtener datos del usuario autenticado
+function obtenerUsuarioActual() {
+    const usuarioGuardado = localStorage.getItem("user");
+    return usuarioGuardado ? JSON.parse(usuarioGuardado) : null;
+}
+
 // Menú de Perfil
 function toggleMenu() {
     const menu = document.getElementById('profile-menu');
@@ -93,33 +104,142 @@ function irAInicio() {
 }
 
 function cerrarSesion() {
-    // Aquí iría la lógica de cerrar sesión
+    // Limpiar localStorage
+    localStorage.removeItem("user");
+    // Redirigir a inicio
     window.location.href = "index.html";
 }
 
 function postular() {
+    // Verificar si está autenticado
+    if (!usuarioAutenticado()) {
+        mostrarModalAutenticacion();
+        return;
+    }
+    
     alert('¡Te has postulado con éxito a esta posición!');
 }
 
-// Verificar si el usuario está autenticado
-function verificarAutenticacion() {
-    const usuarioGuardado = localStorage.getItem("user");
+// Función para mostrar modal personalizado de autenticación
+function mostrarModalAutenticacion() {
+    // Crear overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'auth-modal-overlay';
     
-    if (!usuarioGuardado) {
-        // Si no hay usuario autenticado, redirigir a login
-        console.log("Usuario no autenticado. Redirigiendo a login...");
-        window.location.href = "login.html";
-        return false;
+    // Crear contenido del modal
+    overlay.innerHTML = `
+        <div class="auth-modal-content">
+            <div class="auth-modal-header">
+                <div class="auth-modal-icon">🔐</div>
+                <h2 class="auth-modal-title">Inicia Sesión</h2>
+                <p class="auth-modal-message">
+                    Necesitas una cuenta para postularte a empleos. Es rápido y seguro.
+                </p>
+            </div>
+            
+            <div class="auth-modal-buttons">
+                <button class="auth-modal-btn auth-modal-btn-primary" onclick="irALogin()">
+                    Iniciar Sesión
+                </button>
+                <button class="auth-modal-btn auth-modal-btn-secondary" onclick="cerrarModal(this)">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Agregar al DOM
+    document.body.appendChild(overlay);
+    
+    // Cerrar al hacer clic en el overlay (fuera del modal)
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            overlay.remove();
+        }
+    });
+}
+
+function irALogin() {
+    window.location.href = "login.html";
+}
+
+function cerrarModal(btn) {
+    const overlay = btn.closest('.auth-modal-overlay');
+    if (overlay) {
+        overlay.remove();
     }
-    
-    return true;
 }
 
 // Inicializar la vista al cargar la página
 document.addEventListener("DOMContentLoaded", () => {
-    // Verificar autenticación primero
-    if (verificarAutenticacion()) {
-        renderizarEmpleos(empleos);
-        console.log("Módulo Empleos cargado correctamente.");
+    const usuario = obtenerUsuarioActual();
+    
+    if (!usuario) {
+        // Si no está autenticado, ocultar el menú de perfil y mostrar botón de login
+        const profileNav = document.querySelector('nav .relative');
+        if (profileNav) {
+            profileNav.innerHTML = `
+                <button onclick="window.location.href='login.html'" class="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition duration-300 shadow-md">
+                    Iniciar Sesión
+                </button>
+            `;
+        }
+    } else {
+        // Actualizar el nombre del usuario en el perfil
+        actualizarPerfilUsuario(usuario);
     }
+    
+    renderizarEmpleos(empleos);
+    console.log("Módulo Empleos cargado correctamente.");
+    
+    // Inicializar Firebase solo si no ha sido inicializado
+    inicializarFirebaseEmpleos();
 });
+
+// Función para actualizar el perfil del usuario
+function actualizarPerfilUsuario(usuario) {
+    const nombreElemento = document.querySelector('.px-4.py-3 .text-sm.font-extrabold');
+    const emailElemento = document.querySelector('.px-4.py-3 .text-xs');
+    
+    if (nombreElemento) {
+        nombreElemento.textContent = usuario.nombre || usuario.email || 'Usuario';
+    }
+    if (emailElemento) {
+        emailElemento.textContent = usuario.email || '';
+    }
+}
+
+// Inicializar Firebase en empleos.html
+function inicializarFirebaseEmpleos() {
+    if (!window.FIREBASE_CONFIG) {
+        console.log("Configuración de Firebase no disponible");
+        return;
+    }
+    
+    // Evitar re-inicializar Firebase
+    if (window.firebase && window.firebase.apps && window.firebase.apps.length > 0) {
+        return;
+    }
+    
+    try {
+        window.firebase.initializeApp(window.FIREBASE_CONFIG);
+        const auth = window.firebase.auth();
+        
+        // Escuchar cambios de autenticación
+        auth.onAuthStateChanged((firebaseUser) => {
+            if (firebaseUser) {
+                // Usuario autenticado en Firebase, actualizar localStorage
+                const datosUsuario = {
+                    uid: firebaseUser.uid,
+                    nombre: firebaseUser.displayName || "",
+                    email: firebaseUser.email || "",
+                    foto: firebaseUser.photoURL || ""
+                };
+                localStorage.setItem("user", JSON.stringify(datosUsuario));
+                actualizarPerfilUsuario(datosUsuario);
+            }
+        });
+    } catch (error) {
+        console.log("Error al inicializar Firebase en empleos:", error);
+    }
+}
